@@ -1,93 +1,54 @@
 import { useEffect } from 'react';
 import { ContactForm } from './ContactForm/ContactForm';
-import { Filter } from './Filter/Filter';
-import { ContactList } from './ContactList/ContactList';
-import css from './ContactForm/ContactForm.module.css';
-import {
-  addContact,
-  deleteContact,
-} from '../redux/slices/contactsSlice';
-import { setFilter } from '../redux/slices/filterSlice';
+import { SearchBar } from './SearchBar/SearchBar';
+import ContactsList from './ContactList/ContactsList';
+import css from './App.module.css';
 import { useDispatch, useSelector } from 'react-redux';
+import { fetchContacts, addContact, deleteContact } from '../redux/operations';
 import {
-  selectContacts,
-  selectFilters,
-} from '../redux/selectors/selectors';
+  getContacts,
+  getFilter,
+  getIsLoading,
+  getError,
+} from '../redux/selectors';
+import { setFilter } from '../redux/contactsSlice';
 
 export const App = () => {
   const dispatch = useDispatch();
-  const { contacts } = useSelector(selectContacts);
-  const { filter } = useSelector(selectFilters);
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+  const isLoading = useSelector(getIsLoading);
+  const error = useSelector(getError);
 
   useEffect(() => {
-    localStorage.setItem(
-      'contactList',
-      JSON.stringify(contacts)
-    );
-  }, [contacts]);
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
-  const handleChange = e => {
-    const { value } = e.target;
-    dispatch(
-      setFilter({
-        filter: value,
-      })
-    );
+  const handleFilterChange = event => {
+    dispatch(setFilter(event.target.value));
   };
 
-  const handleSubmit = e => {
-    const name = e.name;
-    const number = e.number;
-    dispatch(
-      addContact({
-        name,
-        number,
-      })
-    );
+  const handleAddContact = (name, phone) => {
+    dispatch(addContact({ name, phone }));
   };
 
-  const handleDelete = id => {
-    dispatch(
-      deleteContact({
-        id,
-      })
-    );
-  };
-
-  const getFilteredContacts = () => {
-    const filteredContactList = contacts.filter(contact => {
-      return contact.name
-        .toLowerCase()
-        .includes(filter.toLowerCase());
-    });
-    return filteredContactList;
+  const handleDeleteContact = id => {
+    dispatch(deleteContact(id));
   };
 
   return (
-    <div
-      style={{
-        height: '100%',
-        width: '70%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        color: '#000000',
-        background: '#b74848',
-        margin: 'auto',
-        padding: 20,
-        borderRadius: 30,
-      }}>
-      <h1 className={css.header}>Phonebook</h1>
-      <ContactForm handleSubmit={handleSubmit} />
-      <h2 className={css.contacts}>Contacts</h2>
-      <Filter filter={filter} handleChange={handleChange} />
-      <ContactList
-        contacts={getFilteredContacts()}
-        handleDelete={handleDelete}
+    <div className={css.container}>
+      <h1 className={css.heading}>Phonebook</h1>
+      <ContactForm onSubmit={handleAddContact} />
+      <h2 className={css.heading}>Contacts</h2>
+      <SearchBar filter={filter} onFilterChange={handleFilterChange} />
+      {isLoading && !error && <b>Request in progress...</b>}
+      {error && <p className={css.error}>{error}</p>}
+      <ContactsList
+        contacts={contacts}
+        filter={filter}
+        onDelete={handleDeleteContact}
       />
     </div>
   );
 };
-
-export default App;

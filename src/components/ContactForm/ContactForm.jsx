@@ -1,73 +1,57 @@
 import { useState } from 'react';
 import css from './ContactForm.module.css';
-import { useSelector, useDispatch } from 'react-redux';
-import { selectContacts } from '../../redux/selectors/selectors';
-import { addContact } from '../../redux/operations/operations';
 
-export const ContactForm = () => {
+export const ContactForm = ({ onSubmit }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const dispatch = useDispatch();
-  const { contacts } = useSelector(selectContacts);
 
-  const handleNameChange = e => {
-    const { value } = e.target;
-    setName(value);
-  };
-
-  const handleNumberChange = e => {
-    setPhone(e.target.value);
-  };
-
-  const handleFormSubmit = e => {
-    e.preventDefault();
-    const contactList = [...contacts];
-    if (
-      contactList.findIndex(
-        contact => name === contact.name
-      ) !== -1
-    ) {
-      alert(`${name} is already in contacts.`);
-    } else {
-      dispatch(
-        addContact({
-          name,
-          phone,
-        })
-      );
+  const handleChange = event => {
+    const { name, value } = event.target;
+    if (name === 'name') {
+      setName(value);
+    } else if (name === 'phone') {
+      setPhone(value);
     }
+  };
 
+  const handleSubmit = event => {
+    event.preventDefault();
+    onSubmit(name, phone);
     setName('');
     setPhone('');
   };
 
   return (
-    <form className={css.form} onSubmit={handleFormSubmit}>
-      <label className={css.formLabel}>Name </label>
+    <form className={css.form} onSubmit={handleSubmit}>
+      <label className={css.formLabel} htmlFor="nameField">
+        Name
+      </label>
       <input
         className={css.formInput}
-        type='text'
-        name='name'
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-        required
-        placeholder='Enter name'
+        id="nameField"
+        type="text"
+        name="name"
         value={name}
-        onChange={handleNameChange}
+        onChange={handleChange}
+        placeholder="Name"
+        pattern="^[a-zA-Zа-яА-Я]+(([' \\-][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+        required
       />
-      <label className={css.formLabel}>Number </label>
+      <label className={css.formLabel} htmlFor="phoneField">
+        Number
+      </label>
       <input
         className={css.formInput}
-        type='tel'
-        name='number'
-        pattern='\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}'
-        title='Phone number must be digits and can contain spaces, dashes, parentheses and can start with +'
-        required
-        placeholder='Enter phone number'
+        id="phoneField"
+        type="tel"
+        name="phone"
         value={phone}
-        onChange={handleNumberChange}
+        onChange={handleChange}
+        placeholder="Phone Number"
+        pattern="\+?\d{1,4}?[ .\\-\\s]?\(?\d{1,3}?\)?[ .\\-\\s]?\d{1,4}[ .\\-\\s]?\d{1,4}[ .\\-\\s]?\d{1,9}"
+        required
       />
-      <button className={css.formBtn} type='submit'>
+      <button className={css.formBtn} type="submit">
         Add contact
       </button>
     </form>
